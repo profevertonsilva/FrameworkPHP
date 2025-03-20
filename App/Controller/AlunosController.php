@@ -13,9 +13,7 @@ class AlunosController extends Action{
         $title = "alunos";
         $title_pagina = "Alunos";
 
-        $vendedorDAO = new VendedoresDAO();
-        $vendedor = $vendedorDAO->buscarPorLogado($_SESSION['log_id']);
-        $this->getView()->vendedor = $vendedor;
+        
 
         $this->getView()->title = $title;
         $this->getView()->title_pagina = $title_pagina;
