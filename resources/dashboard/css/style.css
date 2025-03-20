@@ -1,0 +1,28 @@
+.btn_salvar{
+    float: right;
+}
+.fa-whatsapp{
+    color: rgb(11, 104, 11);
+}
+.fa-trash-can{
+    color: #f00;
+}
+.fa-pen-to-square{
+    color: #d37801;
+}
+.tamanho_icone{
+    font-size: 15px;
+}
+.is-valid {
+    border-color: #28a745;
+}
+
+.is-invalid {
+    border-color: #dc3545;
+}
+
+.icone-dashboard
+{
+    font-size: 45px;
+    color: #d37801;
+}

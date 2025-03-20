@@ -1,0 +1,169 @@
+Dentro da Pasta vendor/FW/Controller/FuncoesGLobais.php existem alguns métodos que utilizo com frequência, então criei este arquivo somente par facilitar o uso
+
+Na raiz do projeto tem um arquivo .env, nele estão as configurações do projeto, algumas variáveis Globais e configurações de banco de dados
+
+o importante no projeto é seguir o seguinte caminho quando apresentar um erro
+
+- Verifique a Rota
+	-Existe um arquivo na Pasta App\Routes.php perceba que neste arquivo existem alguns includes de outros arquivos de Rotas que estão na pasta Routes
+	-É importante que cada entidade do banco de dados tenha seu arquivo de rotas separadamente
+		EX: se tiver um tabela no bando de dados chamada Alunos - dentro da pasta Routes deve haver um arquivo Routes_Alunos.php
+	-A rota é composta por
+		$routes['Listagem_Administradores'] = array( //Nome da Rota -> DEVE SER UNICO
+    			'route' => '/dashboard/administradores', //Endereço que vai ser acessado via navegador -> DEVE SER UNICO
+    			'controller' => 'AdministradoresController', // Controller que será acessado
+    			'action' => 'listar' // Método do Controller que será acessado quando a Rota foi executada
+		);
+	-Outro tipo de Rota com passagem de parametro
+		//Carregamento do formulário de Editar Profissionais
+		$routes['Editar_Profissionais'] = array(
+			'route' => '/dashboard/profissionais/editar/{id}', //Neste caso estou passando o código diretamente na URL com o comando {id}
+			'controller' => 'ProfissionaisController',
+			'action' => 'editar'
+		);
+		-OBS: Devemos evitar a passagem de parâmetros da seguinte forma /dashboard/profissionais/editar?id=1
+-Verificar o Model
+	-O Model é o espelho da tabela do banco de dados
+	-Se a Tabela se chamar Alunos seu model deve obrigatoriamente se chamar AlunosModel.php e estar dentro da pasta App/Model/AlunosModel.php
+	-Para não haver Erros de sintaxe, recomenda-se que todos os atributos do Model tenham os mesmos nomes dos atributos da Entidade do Banco de Dados;
+	- No Model existe um método mágico para set e get
+	-EX:
+		public function __set($nome, $valor)
+			{
+				$this->$nome = $valor;
+			}
+
+		public function __get($nome)
+			{
+				return $this->$nome;
+		}
+		//Não há necessidade de ter um get e um set para cada atributos
+- Verificar o Controller
+	-O Controller fica dentro da pasta App/Controller
+	-Deve ter o mesmo nome da Entidade EX: se a Entidade se chama Alunos o controller deverá se Chamar AlunosController.php e ficar dentro da pasta App/Controller/AlunosController.php
+	-OBS:	O Controller extende de Action então Obrigatoriamente tem que ter um método chamado validaAutenticacao() sem ele apresentará um erro de Bootstrap.php  Atenção aqui!!!!
+	-Cada método do Controller tem uma função específica: 
+		-Abrir telas ->
+				public function dashboard(){
+
+					$this->getView()->title = "Dashboard"; // Cria uma variável com a Palavra "Dashboard" para ser utilizada na View
+
+					$this->render('index', 'dashboard'); //Carrega um arquivo chamado index dentro da dashboard
+
+				}
+				ATENÇÃO:
+					Para carregar um arquivo standalone utilize o comando	
+							$this->render('index', ''); //Perceba que não passei o parametro dashboard, isso fara o carregamento somente do arquivo index
+		-Executar uma ação do Bando de dados: //Esta 100% das vezes relacionado ao Action de um formulário, neste caso os dados estão sendo enviados via POST
+			public function salvar(){ 
+            
+				try { 
+					// Instancia o DAO de Profissionais
+					$administradoresDAO = new AdministradoresDAO();
+			
+					// Cria o modelo e insere os dados de login
+					$loginModel = new LoginModel();
+					$loginModel->__set("log_email", $_POST['log_email']);
+					$loginModel->__set("log_senha", $_POST['log_senha']);
+					$loginModel->__set("log_status", "A");
+					$loginModel->__set("log_token", uniqid());
+					$loginModel->__set("log_verificado", "N");
+					$loginModel->__set("fk_tipo_usuario_tus_id", "1");
+
+					$loginDAO = new LoginDAO();
+					$loginDAO->inserir($loginModel);
+					
+					// Busca o ID do login recém-criado
+					$data = $loginDAO->BuscarPorEmail($_POST['log_email']);
+					$log_id = $data[0];
+					// Cria o modelo e insere os dados do administrador
+					$administradoresModel = new AdministradoresModel();
+					$administradoresModel->__set("adm_nome", $_POST['adm_nome']);
+					$administradoresModel->__set("adm_telefone", $_POST['adm_telefone']);
+					$administradoresModel->__set("fk_login_log_id", $log_id);
+
+					$administradoresDAO->inserir($administradoresModel);
+			
+					
+			
+					// Redireciona ou exibe sucesso
+					header('Location: /dashboard/administradores');
+					exit;
+					
+			
+				} catch (\Exception $ex) {
+					// Trata erros
+					header('Location: /errorp');
+					die();
+				}
+			}
+-Verificar a View
+	-Dentro da pasta App/view existem um arquivo de template chamado dashboad.php	
+		-Este arquivo é o template que será utilizado no projeto
+			-todos os seus accets DEVEM estar na pasta publica que esta na raiz do projeto no endereço resources/dashboard/
+				-Aqui podem ter as pastas desejadas por exemplo: CSS, JS, IMG ...
+		-O projeto pode ter mais de um TEMPLATE 
+			-Neste caso posso ter um template para a DashBoard (área controlada do sistema) e outro Template para o meu site aberto
+			-Para que isso aconteça, basta criar o arquivo desejado de TEMPLATE na pasta App/view/
+
+	ATENÇÃO:
+		-As view ficam dentro da Pasta App/view
+		-Para o funcionamento correto temos que nos atentar a:
+			-De acordo com o Controller que estamos utilizando devemos ter uma pasta
+			-EX: se vamos utilizar o AlunosController.php então todos os arquivos de view deverão estar dentro da pasta alunos no seguinte endereço App/view/alunos 
+				No caso do exemplo do Controller abaixo
+					public function dashboard(){
+
+						$this->getView()->title = "Dashboard"; // Cria uma variável com a Palavra "Dashboard" para ser utilizada na View
+
+						$this->render('index', 'dashboard'); //Carrega um arquivo chamado index dentro da dashboard
+
+					}
+				O arquivo deverá estar no seguinte endereço	
+						App/view/alunos/index.php // Muita Atenção neste ponto, o arquivo no local incorreto não fará o carregamento da forma esperada
+
+
+PONTOS DE ATENÇÃO: 
+	->TODAS AS CLASSES DEVEM PARTICIPAR DE UM NAMESPACE
+		- Exemplo:
+			-O Controller AlunosController.php esta dentro da pasta App/Controller/AlunosController.php
+			-Então ele deve ter na primeira linha do seu código a especificação de qual namespace ele faz parte: 
+				neste caso: 
+						namespace App\Controller;
+			-Da mesma forma para o arquivo de Model
+				namespace App\Model;
+	->Quando vou instanciar uma classe dentro de um Controller ou DAO devo fazer a identificação de qual estarei utilizando
+		-EX:
+			-Dentro do Controller AlunosController.php o código ficaria da seguinte forma:
+				<?php
+
+					namespace App\Controller;
+
+					use FW\Controller\Action; // DEVE ESTAR AQUI OBRIGATORIAMENTE PARA O FUNCIONAMENTO DE FORMA CORRETA DO FRAMEWORK
+					use App\Model\AlunosModel;
+					use App\DAO\AlunosDAO;
+					use App\DAO\LoginDAO;
+					use App\Model\LoginModel;
+
+					//Neste caso dentro da Classe AlunosController vou utilizar o AlunosModel, AlunosDAO, LoginDAO e LoginModel
+
+					class AlunosController extends Action{
+						... //Métodos deste Controller
+					}
+			-Sem estas especificações o código apresentará erros
+	
+
+			
+PlayList no Youtube explicando o funcionamento do FrameWork por completo
+https://www.youtube.com/watch?v=2Am_YoHV8oA&list=PLm3xviO6FwWN1gDFAtF8VSzTgCgS9w0wc
+
+
+Para executar o projeto pelo VSCode, clique em Terminal e digite o comando:
+OBS: Para executar com este comando, o php DEVE estar setado nas Variáveis de Ambiente do seu Sistema Operacional
+    php -S localhost:8000
+
+WAMP
+EX: c:\wamp64\bin\php\php8.2.0\php.exe -S localhost:8000
+
+XAMPP
+EX: c:\xampp\php\bin\php.exe -S localhost:8000
