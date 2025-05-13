@@ -3,6 +3,7 @@
 namespace App;
 
 use FW\Init\Boostrap;
+use FW\Router\RouteManager;
 
 class Route extends Boostrap
 {
@@ -18,11 +19,20 @@ class Route extends Boostrap
         );
 
 
-        include 'Routes/Routes_Administradores.php';
-        include 'Routes/Routes_Profissionais.php';
-        include 'Routes/Routes_Lojistas.php';
-        include 'Routes/Routes_Login.php';
-        include 'Routes/Routes_LandingPage.php';
+        $routeManager = RouteManager::getInstance();
+        $dbRoutes = $routeManager->getAllRoutes();
+
+        
+        foreach ($dbRoutes as $dbRoute) {
+            $routes[$dbRoute['nome_rota']] = array(
+                'route' => '/' . $dbRoute['slug'],
+                'controller' => $dbRoute['controller'],
+                'action' => $dbRoute['action'],
+                'is_dynamic' => $dbRoute['is_dynamic'],
+                'pattern' => $dbRoute['pattern'] ?? null
+            );
+        }
+
         
         
 

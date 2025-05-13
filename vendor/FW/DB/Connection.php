@@ -2,7 +2,7 @@
 
 namespace FW\DB;
 
-abstract class Connection
+class Connection
 {
 
     private $conn;
@@ -30,7 +30,7 @@ abstract class Connection
         }
     }
 
-    protected function getConn()
+    public function getConn()
     {
         return $this->conn;
     }

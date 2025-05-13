@@ -6,11 +6,18 @@ namespace FW\Controller;
 
 class FuncoesGlobais{
 
+    
+
     function popularModel($model, $data) {
         foreach ($data as $key => $value) {
             // Chama o método mágico __set diretamente para atribuir o valor à propriedade
             $model->__set($key, $value);
         }
+    }
+
+    function criptografar($senha) {
+        // Criptografa a senha usando o algoritmo MD5
+        return hash('md5', $senha);
     }
 
     function converterData($data) {
